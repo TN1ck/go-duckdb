@@ -382,14 +382,13 @@ func TestDecimal(t *testing.T) {
 			(1.23 :: DECIMAL(3, 2)),
 			(123.45 :: DECIMAL(5, 2)),
 			(123456789.01 :: DECIMAL(11, 2)),
-			(12345678901234.567 :: DECIMAL(22, 3)),
+			(1234567890123456789.234 :: DECIMAL(22, 3)),
 		) v
 		ORDER BY v ASC`)
 		require.NoError(t, err)
 		defer rows.Close()
 
-		// TODO: We cannot go higher than this right due to an issue with duckdb's query parser.
-		bigNumber, success := new(big.Int).SetString("12345678901234567", 10)
+		bigNumber, success := new(big.Int).SetString("1234567890123456789234", 10)
 		require.True(t, success, "failed to parse big number")
 		want := []Decimal{
 			{Value: big.NewInt(1230), Width: 22, Scale: 3},
@@ -405,21 +404,12 @@ func TestDecimal(t *testing.T) {
 		}
 	})
 
-	// TODO: We get lower precision numbers here due to a bug it what seems duckdb's query parser.
-	// t.Run("huge decimal", func(t *testing.T) {
-	// 	bigNumber, success := new(big.Int).SetString("12345678901234567890123456789", 10)
-	// 	require.True(t, success, "failed to parse big number")
-	// 	var f Decimal
-	// 	require.NoError(t, db.QueryRow("SELECT 123456789.01234567890123456789 :: DECIMAL(38, 20)").Scan(&f))
-	// 	compareDecimal(t, Decimal{Value: bigNumber, Width: 38, Scale: 20}, f)
-	// })
-
 	t.Run("huge decimal", func(t *testing.T) {
-		bigNumber, success := new(big.Int).SetString("123456789012345612", 10)
+		bigNumber, success := new(big.Int).SetString("12345678901234567890123456789", 10)
 		require.True(t, success, "failed to parse big number")
 		var f Decimal
-		require.NoError(t, db.QueryRow("SELECT 1234567890123456.12 :: DECIMAL(38, 2)").Scan(&f))
-		compareDecimal(t, Decimal{Value: bigNumber, Width: 38, Scale: 2}, f)
+		require.NoError(t, db.QueryRow("SELECT 123456789.01234567890123456789 :: DECIMAL(38, 20)").Scan(&f))
+		compareDecimal(t, Decimal{Value: bigNumber, Width: 38, Scale: 20}, f)
 	})
 }
 
